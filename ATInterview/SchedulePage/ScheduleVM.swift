@@ -42,7 +42,7 @@ class ScheduleVM {
             let startTimestamp = $0.start.dateStringToUTCTimestamp()
             let endTimestamp = $0.end.dateStringToUTCTimestamp()
             let timestamp = startTimestamp.timestampDateStr(dateFormat: "yyyy-MM-dd").dateStringToUTCTimestamp(dateFormat: "yyyy-MM-dd")
-            let weekday = timestamp.dayNumberOfWeek
+            let weekday = timestamp.timestampDateStr(dateFormat: "EEE")
                                 
             for myTimestamp in stride(from: startTimestamp, to: endTimestamp, by: teachingTime) {
                 availableTimeList.append(myTimestamp.timestampDateStr(dateFormat: "HH:mm"))
@@ -74,7 +74,7 @@ class ScheduleVM {
             let startTimestamp = $0.start.dateStringToUTCTimestamp()
             let endTimestamp = $0.end.dateStringToUTCTimestamp()
             let timestamp = startTimestamp.timestampDateStr(dateFormat: "yyyy-MM-dd").dateStringToUTCTimestamp(dateFormat: "yyyy-MM-dd")
-            let weekday = timestamp.dayNumberOfWeek
+            let weekday = timestamp.timestampDateStr(dateFormat: "EEE")
 
             for myTimestamp in stride(from: startTimestamp, to: endTimestamp, by: teachingTime) {
                 bookedTimeList.append(myTimestamp.timestampDateStr(dateFormat: "HH:mm"))
@@ -106,7 +106,7 @@ class ScheduleVM {
             if !scheduleList.contains(where: {
                 return $0.timestamp == myTimestamp
             }) {
-                let weekday = myTimestamp.dayNumberOfWeek
+                let weekday = myTimestamp.timestampDateStr(dateFormat: "EEE")
                 scheduleList.append(.init(weekday: weekday, timestamp: myTimestamp, cellTimeList: []))
             }
         }

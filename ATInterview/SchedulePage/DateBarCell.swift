@@ -60,7 +60,6 @@ class DateBarCell: UICollectionViewCell {
     
     func updateUI(schedule: UiSchedule) {
         weekdayLabel.text = schedule.weekday
-        dayLabel.text = schedule.timestamp.day
-
+        dayLabel.text = schedule.timestamp.timestampDateStr(dateFormat: "dd")
     }
 }
