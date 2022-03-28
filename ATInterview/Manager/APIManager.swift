@@ -15,7 +15,7 @@ class APIManager {
     
     func getSchedule(time: String) -> Single<ScheduleResp> {
         var params = [String: AnyObject]()
-        params["started_at"] = time as AnyObject//"2022-04-02T16:00:00.000Z" as AnyObject
+        params["started_at"] = time as AnyObject
         
         return task(apiType: .OPENAPI_GET_SCHEDULE, params: params).flatMap { (data) -> Single<ScheduleResp> in
             return APIManager.handleDecode(ScheduleResp.self, from: data)
@@ -48,7 +48,7 @@ class APIManager {
 
     private func task(apiType: ApiType, params: [String: AnyObject]? = nil) -> Single<Data?> {
         return Single<Data?>.create { (singleEvent) -> Disposable in
-            Alamofire.request(apiType.host + apiType.path, method: apiType.method, parameters: params, encoding: apiType.encoding, headers: apiType.headers).responseJSON(completionHandler: { response in
+            self.runCommand(apiType: apiType, params: params, completion: { response in
                 switch response.result {
                 case .success:
                     if let jsonData = response.data , let JSONString = String(data: jsonData, encoding: String.Encoding.utf8) {
@@ -58,17 +58,23 @@ class APIManager {
                 case .failure(let error):
                     singleEvent(.failure(error))
                 }
-                
             })
             return Disposables.create()
         }
-
     }
+    
+    func runCommand(apiType: ApiType, params: [String: AnyObject]? = nil, completion: @escaping (DataResponse<Any>) -> Void) {
+        Alamofire.request(apiType.host + apiType.path, method: apiType.method, parameters: params, encoding: apiType.encoding, headers: apiType.headers).responseJSON(completionHandler: { response in
+            
+            completion(response)
+        })
+    }
+    
 }
 
 extension APIManager {
     
-    private enum ApiType {
+    enum ApiType {
         case OPENAPI_GET_SCHEDULE
         
         var host: String {
