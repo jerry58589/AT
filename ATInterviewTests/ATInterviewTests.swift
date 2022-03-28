@@ -6,6 +6,8 @@
 //
 
 import XCTest
+import RxSwift
+import RxBlocking
 @testable import ATInterview
 
 class ATInterviewTests: XCTestCase {
@@ -18,16 +20,34 @@ class ATInterviewTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
+    func testGetScheduleViewObject() {
+        let vm = ScheduleVM()
+        vm.getScheduleViewObject(timestamp: Int(Date().timeIntervalSince1970))
+        let observable = vm.getScheduleSubject
+        let result = observable.toBlocking()
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+        XCTAssertNotNil(try result.first())
+    }
+        
+    func testGetScheduleApi() {
+        let time = (Int(Date().timeIntervalSince1970) - Date().daySec).timestampDateStr(dateFormat: "yyyy-MM-dd'T'HH:mm:ss'Z'")
+        var params = [String: AnyObject]()
+        params["started_at"] = time as AnyObject
+        
+        var responseError: Error?
+        var responseData: Data?
+        var statusCode: Int?
+
+        APIManager.shared.runCommand(apiType: .OPENAPI_GET_SCHEDULE, params: params, completion: { response in
+            responseData = response.data
+            responseError = response.error
+            statusCode = response.response?.statusCode
+            
+            XCTAssertEqual(statusCode, 200)
+            XCTAssertNotNil(responseData)
+            XCTAssertNil(responseError)
+        })
+
     }
 
 }
