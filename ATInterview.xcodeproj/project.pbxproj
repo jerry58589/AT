@@ -142,7 +142,7 @@
 			path = Manager;
 			sourceTree = "<group>";
 		};
-		C471CE9A27EF18F7000F02A5 /* Calendar */ = {
+		C471CE9A27EF18F7000F02A5 /* SchedulePage */ = {
 			isa = PBXGroup;
 			children = (
 				C471CE9B27EF1931000F02A5 /* ScheduleVC.swift */,
@@ -152,7 +152,7 @@
 				C4B6FA6227F095AB00991203 /* ScheduleCollectionViewCell.swift */,
 				C4B6FA6427F0961400991203 /* TimeTableViewCell.swift */,
 			);
-			path = Calendar;
+			path = SchedulePage;
 			sourceTree = "<group>";
 		};
 		C4742D9C27EEF7BD000637C3 = {
@@ -185,7 +185,7 @@
 				C4B6FA4F27EF4CB200991203 /* Extension */,
 				C4742DDA27EF12BF000637C3 /* ResponseModel */,
 				C471CE9927EF17BD000F02A5 /* Manager */,
-				C471CE9A27EF18F7000F02A5 /* Calendar */,
+				C471CE9A27EF18F7000F02A5 /* SchedulePage */,
 				C4742DB127EEF7C6000637C3 /* Assets.xcassets */,
 				C4742DB327EEF7C6000637C3 /* LaunchScreen.storyboard */,
 				C4742DB627EEF7C6000637C3 /* Info.plist */,
