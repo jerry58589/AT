@@ -86,7 +86,7 @@ class ScheduleVC: UIViewController {
     private let viewModel: ScheduleVM
     private var uiScheduleList: UiScheduleList?
     private var currentIndexPath = IndexPath(item: 0, section: 0)
-    private var currentTimestamp = Int(NSDate().timeIntervalSince1970)
+    private var currentTimestamp = Int(Date().timeIntervalSince1970)
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -188,7 +188,7 @@ class ScheduleVC: UIViewController {
     }
     
     private func updatePreviousBtn() {
-        previousBtn.isEnabled = Double(currentTimestamp) > NSDate().timeIntervalSince1970
+        previousBtn.isEnabled = Double(currentTimestamp) > Date().timeIntervalSince1970
     }
     
     
