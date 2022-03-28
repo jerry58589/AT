@@ -93,6 +93,7 @@ class ScheduleVC: UIViewController {
 
         setupUI()
         getUiScheduleList()
+        dataBinding()
     }
 
     public init(viewModel: ScheduleVM = .init()) {
@@ -164,11 +165,19 @@ class ScheduleVC: UIViewController {
     }
    
     private func getUiScheduleList() {
-        viewModel.getScheduleViewObject(timestamp: currentTimestamp).subscribe(onSuccess: { uiScheduleList in
-            self.updateUI(uiScheduleList)
-        }, onFailure: { err in
-            print(err)
-        }).disposed(by: disposeBag)
+        viewModel.getScheduleViewObject(timestamp: currentTimestamp)
+    }
+    
+    private func dataBinding() {
+        viewModel.getScheduleSubject.asObserver()
+            .map({ viewObject -> String in
+                self.uiScheduleList = viewObject
+                self.scheduleCollectionView.reloadData()
+                self.dateBar.reloadData()
+                return viewObject.startToEndTime
+            })
+            .bind(to: self.startToEndTimeLabel.rx.text)
+            .disposed(by: disposeBag)
     }
     
     private func updateUI(_ viewObject: UiScheduleList) {

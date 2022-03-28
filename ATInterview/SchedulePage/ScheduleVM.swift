@@ -11,12 +11,19 @@ import RxSwift
 class ScheduleVM {
     private let disposeBag = DisposeBag()
     private let teachingTime = 30*60
+    let getScheduleSubject = PublishSubject<UiScheduleList>()
     
-    func getScheduleViewObject(timestamp: Int) -> Single<UiScheduleList> {
+    func getScheduleViewObject(timestamp: Int) {
         let time = (timestamp - Date().daySec).timestampDateStr(dateFormat: "yyyy-MM-dd'T'HH:mm:ss'Z'")
-        return APIManager.shared.getSchedule(time: time).map { schedule -> UiScheduleList in
+
+        APIManager.shared.getSchedule(time: time).map { schedule -> UiScheduleList in
             return self.genUiScheduleList(schedule: schedule)
-        }
+        }.subscribe(onSuccess: { viewObject in
+            self.getScheduleSubject.onNext(viewObject)
+        }, onFailure: { err in
+            print(err)
+            self.getScheduleSubject.onError(err)
+        }).disposed(by: disposeBag)
     }
     
     func getTimeZoneHint() -> String {
