@@ -10,6 +10,8 @@ target 'ATInterview' do
   
   pod 'RxSwift'
   pod 'RxCocoa'
+  pod 'RxBlocking'
+  pod 'RxDataSources'
   pod 'Alamofire'
   pod 'SnapKit'
 
