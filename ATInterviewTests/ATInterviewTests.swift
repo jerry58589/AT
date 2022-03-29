@@ -23,10 +23,10 @@ class ATInterviewTests: XCTestCase {
     func testGetScheduleViewObject() {
         let vm = ScheduleVM()
         vm.getScheduleViewObject(timestamp: Int(Date().timeIntervalSince1970))
-        let observable = vm.getScheduleSubject
+        let observable = vm.collectionViewDataSubject
         let result = observable.toBlocking()
 
-        XCTAssertNotNil(try result.first())
+        XCTAssertNotNil(try result.first()?.first?.items)
     }
         
     func testGetScheduleApi() {
