@@ -37,6 +37,7 @@ class TimeTableViewCell: UITableViewCell {
     }
     
     private func setupUI() {
+        self.selectionStyle = .none
         contentView.addSubview(backView)
         backView.addSubview(nameLabel)
 

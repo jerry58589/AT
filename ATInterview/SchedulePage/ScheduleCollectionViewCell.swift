@@ -7,14 +7,30 @@
 
 import Foundation
 import UIKit
+import RxSwift
+import RxDataSources
 
 class ScheduleCollectionViewCell: UICollectionViewCell {
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: CGRect.zero, style: UITableView.Style.plain)
         tableView.tableFooterView = UIView()
         tableView.separatorColor = UIColor.clear
-        tableView.delegate = self
-        tableView.dataSource = self
+        tableView.register(TimeTableViewCell.self, forCellReuseIdentifier: "TimeTableViewCell")
+        
+        tableView.rx.itemSelected
+            .map { indexPath in
+                return (indexPath, self.tableViewDataSource[indexPath])
+            }
+            .subscribe(onNext: { (indexPath, uiCellTime) in
+                if uiCellTime.isAvailable {
+                    print("Pressed available time:", uiCellTime.time)
+                }
+                else {
+                    print("Pressed booked time:", uiCellTime.time)
+                }
+            })
+            .disposed(by: disposeBag)
+
         return tableView
     }()
     
@@ -28,11 +44,21 @@ class ScheduleCollectionViewCell: UICollectionViewCell {
         return label
     }()
     
-    private var uiSchedule: UiSchedule?
+    private let tableViewDataSource = RxTableViewSectionedReloadDataSource<SectionModel<String, UiCellTime>>(
+            configureCell: { (dataSource, tableView, indexPath, item) -> TimeTableViewCell in
+                let cell = tableView.dequeueReusableCell(withIdentifier: "TimeTableViewCell", for: indexPath) as! TimeTableViewCell
+                cell.updateUI(viewObject: item)
+                return cell
+            }
+        )
+    
+    private let disposeBag = DisposeBag()
+    let tableViewSubject = PublishSubject<[SectionModel<String, UiCellTime>]>()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
+        dateBinding()
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -44,7 +70,7 @@ class ScheduleCollectionViewCell: UICollectionViewCell {
         self.contentView.addSubview(hintLabel)
 
         tableView.snp.makeConstraints { (make) in
-            make.top.bottom.equalToSuperview()//.inset(100)
+            make.top.bottom.equalToSuperview()
             make.left.right.equalToSuperview()
         }
         
@@ -53,34 +79,13 @@ class ScheduleCollectionViewCell: UICollectionViewCell {
         }
     }
     
+    private func dateBinding() {
+        tableViewSubject
+            .bind(to: tableView.rx.items(dataSource: tableViewDataSource))
+            .disposed(by: disposeBag)
+    }
+    
     func updateUI(schedule: UiSchedule) {
-        self.uiSchedule = schedule
-        hintLabel.isHidden = uiSchedule?.cellTimeList.count != 0
-        tableView.reloadData()
-    }
-}
-
-extension ScheduleCollectionViewCell: UITableViewDelegate, UITableViewDataSource {
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return uiSchedule?.cellTimeList.count ?? 0
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = TimeTableViewCell(style: .default, reuseIdentifier: "TimeTableViewCell")
-        cell.selectionStyle = .none
-        cell.updateUI(viewObject: (uiSchedule?.cellTimeList[indexPath.row])!)
-        return cell
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if let timeInfo = uiSchedule?.cellTimeList[indexPath.row] {
-            if timeInfo.isAvailable {
-                print("Pressed available time:",uiSchedule?.timestamp.timestampDateStr() ?? "" ,timeInfo.time)
-            }
-            else {
-                print("Pressed booked time:",uiSchedule?.timestamp.timestampDateStr() ?? "" , timeInfo.time)
-            }
-        }
+        hintLabel.isHidden = schedule.cellTimeList.count != 0
     }
 }

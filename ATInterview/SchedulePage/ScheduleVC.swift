@@ -102,19 +102,20 @@ class ScheduleVC: UIViewController {
     
     private lazy var dateBarDataSource = RxCollectionViewSectionedReloadDataSource
         <SectionModel<String, UiSchedule>>(
-        configureCell: { (dataSource, collectionView, indexPath, element) in
+        configureCell: { (dataSource, collectionView, indexPath, item) in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DateBarCell", for: indexPath) as! DateBarCell
             
-            cell.updateUI(schedule: element, isSelected: indexPath == self.currentIndexPath)
+            cell.updateUI(schedule: item, isSelected: indexPath == self.currentIndexPath)
             return cell
         })
     
     private lazy var scheduleCollectionViewDataSource = RxCollectionViewSectionedReloadDataSource
         <SectionModel<String, UiSchedule>>(
-        configureCell: { (dataSource, collectionView, indexPath, element) in
+        configureCell: { (dataSource, collectionView, indexPath, item) in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ScheduleCollectionViewCell", for: indexPath) as! ScheduleCollectionViewCell
             
-            cell.updateUI(schedule: element)
+            cell.updateUI(schedule: item)
+            cell.tableViewSubject.onNext(self.viewModel.genTimeTableViewData(viewObject: item))
             return cell
         })
 
