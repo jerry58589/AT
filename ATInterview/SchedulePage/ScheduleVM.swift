@@ -12,8 +12,9 @@ import RxDataSources
 class ScheduleVM {
     private let disposeBag = DisposeBag()
     private let teachingTime = 30*60
-    let getScheduleSubject = PublishSubject<UiScheduleList>()
-    let dateBarDataSubject = PublishSubject<[SectionModel<String, UiSchedule>]>()
+    let collectionViewDataSubject = PublishSubject<[SectionModel<String, UiSchedule>]>()
+    let timeZoneHintSubject = PublishSubject<String>()
+    let startToEndTimeSubject = PublishSubject<String>()
     
     func getScheduleViewObject(timestamp: Int) {
         let time = (timestamp - Date().daySec).timestampDateStr(dateFormat: "yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -21,15 +22,18 @@ class ScheduleVM {
         APIManager.shared.getSchedule(time: time).map { schedule -> UiScheduleList in
             return self.genUiScheduleList(schedule: schedule)
         }.subscribe(onSuccess: { viewObject in
-            self.getScheduleSubject.onNext(viewObject)
-            self.dateBarDataSubject.onNext(self.genDateBarData(viewObject: viewObject))
+            self.collectionViewDataSubject.onNext(self.genDateBarData(viewObject: viewObject))
+            self.startToEndTimeSubject.onNext(viewObject.startToEndTime)
         }, onFailure: { err in
             print(err)
-            self.getScheduleSubject.onError(err)
+            self.collectionViewDataSubject.onError(err)
+            self.startToEndTimeSubject.onError(err)
         }).disposed(by: disposeBag)
+        
+        timeZoneHintSubject.onNext(getTimeZoneHint())
     }
     
-    func getTimeZoneHint() -> String {
+    private func getTimeZoneHint() -> String {
         let localTimeZoneAbbreviation = TimeZone.current.abbreviation() ?? ""
         let localTimeZoneIdentifier = TimeZone.current.identifier
         

@@ -45,7 +45,16 @@ class ScheduleVC: UIViewController {
         collectionView.backgroundColor = .white
         collectionView.register(ScheduleCollectionViewCell.self, forCellWithReuseIdentifier: "ScheduleCollectionViewCell")
         collectionView.delegate = self
-        collectionView.dataSource = self
+
+        collectionView.rx.itemSelected
+            .map { indexPath in
+                return (indexPath, self.scheduleCollectionViewDataSource[indexPath])
+            }
+            .subscribe(onNext: { (indexPath, schedule) in
+                self.currentIndexPath = indexPath
+                self.scrollToItemCenter()
+            })
+            .disposed(by: disposeBag)
 
         return collectionView
     }()
@@ -97,21 +106,20 @@ class ScheduleVC: UIViewController {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DateBarCell", for: indexPath) as! DateBarCell
             
             cell.updateUI(schedule: element, isSelected: indexPath == self.currentIndexPath)
-            
-            if indexPath == self.currentIndexPath {
-                cell.contentView.backgroundColor = .amazingTalkerGreen.withAlphaComponent(0.7)
-            }
-            else {
-                cell.contentView.backgroundColor = .white
-            }
-            
             return cell
-        }
-    )
+        })
+    
+    private lazy var scheduleCollectionViewDataSource = RxCollectionViewSectionedReloadDataSource
+        <SectionModel<String, UiSchedule>>(
+        configureCell: { (dataSource, collectionView, indexPath, element) in
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ScheduleCollectionViewCell", for: indexPath) as! ScheduleCollectionViewCell
+            
+            cell.updateUI(schedule: element)
+            return cell
+        })
 
     private let disposeBag = DisposeBag()
     private let viewModel: ScheduleVM
-    private var uiScheduleList: UiScheduleList?
     private var currentIndexPath = IndexPath(item: 0, section: 0)
     private var currentTimestamp = Int(Date().timeIntervalSince1970)
 
@@ -119,8 +127,8 @@ class ScheduleVC: UIViewController {
         super.viewDidLoad()
 
         setupUI()
-        getUiScheduleList()
         dataBinding()
+        getUiScheduleList()
     }
 
     public init(viewModel: ScheduleVM = .init()) {
@@ -175,10 +183,30 @@ class ScheduleVC: UIViewController {
             make.left.right.equalToSuperview()
             make.bottom.equalToSuperview().inset(30)
         }
-        
-        self.timezoneHintLabel.text = viewModel.getTimeZoneHint()
     }
     
+    private func dataBinding() {
+        viewModel.timeZoneHintSubject
+            .bind(to: timezoneHintLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        viewModel.startToEndTimeSubject
+            .bind(to: startToEndTimeLabel.rx.text)
+            .disposed(by: disposeBag)
+        
+        viewModel.collectionViewDataSubject
+            .bind(to: dateBar.rx.items(dataSource: dateBarDataSource))
+            .disposed(by: disposeBag)
+        
+        viewModel.collectionViewDataSubject
+            .bind(to: scheduleCollectionView.rx.items(dataSource: scheduleCollectionViewDataSource))
+            .disposed(by: disposeBag)
+    }
+
+    private func getUiScheduleList() {
+        viewModel.getScheduleViewObject(timestamp: currentTimestamp)
+    }
+
     private func arrowBtnPressed(isNext: Bool) {
         if isNext {
             currentTimestamp += Date().weekSec
@@ -190,58 +218,14 @@ class ScheduleVC: UIViewController {
         updatePreviousBtn()
         getUiScheduleList()
     }
-   
-    private func getUiScheduleList() {
-        viewModel.getScheduleViewObject(timestamp: currentTimestamp)
-    }
-    
-    private func dataBinding() {
-        viewModel.getScheduleSubject.asObserver()
-            .map({ viewObject -> String in
-                self.uiScheduleList = viewObject
-                self.scheduleCollectionView.reloadData()
-                self.dateBar.reloadData()
-                return viewObject.startToEndTime
-            })
-            .bind(to: self.startToEndTimeLabel.rx.text)
-            .disposed(by: disposeBag)
-         
-        viewModel.dateBarDataSubject
-            .bind(to: dateBar.rx.items(dataSource: dateBarDataSource))
-            .disposed(by: disposeBag)
-    }
-    
+        
     private func updatePreviousBtn() {
         previousBtn.isEnabled = Double(currentTimestamp) > Date().timeIntervalSince1970
     }
     
-    
 }
 
-extension ScheduleVC: UICollectionViewDataSource, UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return uiScheduleList?.scheduleList.count ?? 0;
-    }
-    
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return 1
-    }
-
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ScheduleCollectionViewCell", for: indexPath) as! ScheduleCollectionViewCell
-        
-        if let scheudle = uiScheduleList?.scheduleList[indexPath.row] {
-            cell.updateUI(schedule: scheudle)
-        }
-        
-        return cell
-        
-    }
-
-}
-
-extension ScheduleVC: UIScrollViewDelegate {
+extension ScheduleVC: UIScrollViewDelegate, UICollectionViewDelegate {
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         if scrollView == scheduleCollectionView {
             updateCurrentIndexPath()
