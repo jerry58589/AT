@@ -66,10 +66,6 @@ extension ScheduleCollectionViewCell: UITableViewDelegate, UITableViewDataSource
         return uiSchedule?.cellTimeList.count ?? 0
     }
     
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 80
-    }
-
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = TimeTableViewCell(style: .default, reuseIdentifier: "TimeTableViewCell")
         cell.selectionStyle = .none
