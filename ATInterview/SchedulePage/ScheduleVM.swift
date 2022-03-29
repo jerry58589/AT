@@ -7,11 +7,13 @@
 
 import Foundation
 import RxSwift
+import RxDataSources
 
 class ScheduleVM {
     private let disposeBag = DisposeBag()
     private let teachingTime = 30*60
     let getScheduleSubject = PublishSubject<UiScheduleList>()
+    let dateBarDataSubject = PublishSubject<[SectionModel<String, UiSchedule>]>()
     
     func getScheduleViewObject(timestamp: Int) {
         let time = (timestamp - Date().daySec).timestampDateStr(dateFormat: "yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -20,6 +22,7 @@ class ScheduleVM {
             return self.genUiScheduleList(schedule: schedule)
         }.subscribe(onSuccess: { viewObject in
             self.getScheduleSubject.onNext(viewObject)
+            self.dateBarDataSubject.onNext(self.genDateBarData(viewObject: viewObject))
         }, onFailure: { err in
             print(err)
             self.getScheduleSubject.onError(err)
@@ -121,6 +124,10 @@ class ScheduleVM {
         let startToEndTime = "\(scheduleList.first?.timestamp.timestampDateStr() ?? "") - \(scheduleList.last?.timestamp.timestampDateStr() ?? "")"
         
         return .init(startToEndTime: startToEndTime, scheduleList: scheduleList)
+    }
+    
+    private func genDateBarData(viewObject: UiScheduleList) -> [SectionModel<String, UiSchedule>] {
+        return [viewObject].map({return SectionModel(model: "", items: $0.scheduleList)})
     }
 
 }

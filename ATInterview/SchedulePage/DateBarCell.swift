@@ -58,8 +58,15 @@ class DateBarCell: UICollectionViewCell {
         self.layer.cornerRadius = self.frame.height/2
     }
     
-    func updateUI(schedule: UiSchedule) {
+    func updateUI(schedule: UiSchedule, isSelected: Bool) {
         weekdayLabel.text = schedule.weekday
         dayLabel.text = schedule.timestamp.timestampDateStr(dateFormat: "dd")
+        
+        if isSelected {
+            self.contentView.backgroundColor = .amazingTalkerGreen.withAlphaComponent(0.7)
+        }
+        else {
+            self.contentView.backgroundColor = .white
+        }
     }
 }

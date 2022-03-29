@@ -9,6 +9,7 @@ import UIKit
 import RxSwift
 import SnapKit
 import RxCocoa
+import RxDataSources
 
 class ScheduleVC: UIViewController {
     
@@ -20,8 +21,16 @@ class ScheduleVC: UIViewController {
         let collectionView = UICollectionView(frame: CGRect.zero,collectionViewLayout: layout)
         collectionView.backgroundColor = UIColor.gray
         collectionView.register(DateBarCell.self, forCellWithReuseIdentifier: "DateBarCell")
-        collectionView.delegate = self
-        collectionView.dataSource = self
+        
+        collectionView.rx.itemSelected
+            .map { indexPath in
+                return (indexPath, self.dateBarDataSource[indexPath])
+            }
+            .subscribe(onNext: { (indexPath, schedule) in
+                self.currentIndexPath = indexPath
+                self.scrollToItemCenter()
+            })
+            .disposed(by: disposeBag)
 
         return collectionView
     }()
@@ -81,6 +90,24 @@ class ScheduleVC: UIViewController {
         label.lineBreakMode = .byWordWrapping
         return label
     }()
+    
+    private lazy var dateBarDataSource = RxCollectionViewSectionedReloadDataSource
+        <SectionModel<String, UiSchedule>>(
+        configureCell: { (dataSource, collectionView, indexPath, element) in
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DateBarCell", for: indexPath) as! DateBarCell
+            
+            cell.updateUI(schedule: element, isSelected: indexPath == self.currentIndexPath)
+            
+            if indexPath == self.currentIndexPath {
+                cell.contentView.backgroundColor = .amazingTalkerGreen.withAlphaComponent(0.7)
+            }
+            else {
+                cell.contentView.backgroundColor = .white
+            }
+            
+            return cell
+        }
+    )
 
     private let disposeBag = DisposeBag()
     private let viewModel: ScheduleVM
@@ -178,6 +205,10 @@ class ScheduleVC: UIViewController {
             })
             .bind(to: self.startToEndTimeLabel.rx.text)
             .disposed(by: disposeBag)
+         
+        viewModel.dateBarDataSubject
+            .bind(to: dateBar.rx.items(dataSource: dateBarDataSource))
+            .disposed(by: disposeBag)
     }
     
     private func updatePreviousBtn() {
@@ -197,63 +228,20 @@ extension ScheduleVC: UICollectionViewDataSource, UICollectionViewDelegate {
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ScheduleCollectionViewCell", for: indexPath) as! ScheduleCollectionViewCell
         
-        if collectionView == dateBar {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DateBarCell", for: indexPath) as! DateBarCell
-            
-            if let scheudle = uiScheduleList?.scheduleList[indexPath.row] {
-                cell.updateUI(schedule: scheudle)
-            }
-            
-            if indexPath == currentIndexPath {
-                cell.contentView.backgroundColor = .amazingTalkerGreen.withAlphaComponent(0.7)
-            }
-            else {
-                cell.contentView.backgroundColor = .white
-            }
-
-            return cell
-        }
-        else {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ScheduleCollectionViewCell", for: indexPath) as! ScheduleCollectionViewCell
-
-            if let scheudle = uiScheduleList?.scheduleList[indexPath.row] {
-                cell.updateUI(schedule: scheudle)
-            }
-            
-            return cell
+        if let scheudle = uiScheduleList?.scheduleList[indexPath.row] {
+            cell.updateUI(schedule: scheudle)
         }
         
-    }
-
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        currentIndexPath = indexPath
-        scrollToItemCenter()
+        return cell
         
     }
 
 }
 
 extension ScheduleVC: UIScrollViewDelegate {
-    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-//        let layout = scheduleCollectionView.collectionViewLayout as! UICollectionViewFlowLayout
-//        let cellWidthIncludingSpacing = layout.itemSize.width + layout.minimumLineSpacing // Calculate cell size
-//        let offset = scrollView.contentOffset.x
-//        let index = (offset + scrollView.contentInset.left) / cellWidthIncludingSpacing // Calculate the cell need to be center
-//
-//        if velocity.x > 0 { // Scroll to -->
-////            targetContentOffset.pointee = CGPoint(x: ceil(index) * cellWidthIncludingSpacing - scrollView.contentInset.right, y: -scrollView.contentInset.top)
-//        } else if velocity.x < 0 { // Scroll to <---
-////            targetContentOffset.pointee = CGPoint(x: floor(index) * cellWidthIncludingSpacing - scrollView.contentInset.left, y: -scrollView.contentInset.top)
-//        } else if velocity.x == 0 { // No dragging
-////            targetContentOffset.pointee = CGPoint(x: round(index) * cellWidthIncludingSpacing - scrollView.contentInset.left, y: -scrollView.contentInset.top)
-//        }
-//
-////        print(index)
-//        print("000 scrollViewWillEndDragging")
-
-    }
-    
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         if scrollView == scheduleCollectionView {
             updateCurrentIndexPath()
