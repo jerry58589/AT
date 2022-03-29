@@ -180,13 +180,6 @@ class ScheduleVC: UIViewController {
             .disposed(by: disposeBag)
     }
     
-    private func updateUI(_ viewObject: UiScheduleList) {
-        uiScheduleList = viewObject
-        startToEndTimeLabel.text = uiScheduleList?.startToEndTime
-        scheduleCollectionView.reloadData()
-        dateBar.reloadData()
-    }
-    
     private func updatePreviousBtn() {
         previousBtn.isEnabled = Double(currentTimestamp) > Date().timeIntervalSince1970
     }
