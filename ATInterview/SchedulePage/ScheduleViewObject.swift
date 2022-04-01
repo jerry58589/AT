@@ -7,18 +7,18 @@
 
 import Foundation
 
-struct UiScheduleList: Codable {
+struct UiScheduleList {
     let startToEndTime: String
     let scheduleList: [UiSchedule]
 }
 
-struct UiSchedule: Codable {
+struct UiSchedule {
     let weekday: String
     let timestamp: Int
     let cellTimeList: [UiCellTime]    
 }
 
-struct UiCellTime: Codable {
+struct UiCellTime {
     let time: String
     let isAvailable: Bool
 }
