@@ -21,13 +21,13 @@ class ScheduleVM {
 
         APIManager.shared.getSchedule(time: time).map { schedule -> UiScheduleList in
             return self.genUiScheduleList(schedule: schedule)
-        }.subscribe(onSuccess: { viewObject in
-            self.collectionViewDataSubject.onNext(self.genDateBarData(viewObject: viewObject))
-            self.startToEndTimeSubject.onNext(viewObject.startToEndTime)
-        }, onFailure: { err in
+        }.subscribe(onSuccess: { [weak self] viewObject in
+            self?.collectionViewDataSubject.onNext((self?.genDateBarData(viewObject: viewObject))!)
+            self?.startToEndTimeSubject.onNext(viewObject.startToEndTime)
+        }, onFailure: { [weak self] err in
             print(err)
-            self.collectionViewDataSubject.onError(err)
-            self.startToEndTimeSubject.onError(err)
+            self?.collectionViewDataSubject.onError(err)
+            self?.startToEndTimeSubject.onError(err)
         }).disposed(by: disposeBag)
         
         timeZoneHintSubject.onNext(getTimeZoneHint())

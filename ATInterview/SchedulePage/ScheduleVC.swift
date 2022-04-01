@@ -74,20 +74,20 @@ class ScheduleVC: UIViewController {
     
     private lazy var dateBarDataSource = RxCollectionViewSectionedReloadDataSource
         <SectionModel<String, UiSchedule>>(
-        configureCell: { (dataSource, collectionView, indexPath, item) in
+        configureCell: { [weak self] (dataSource, collectionView, indexPath, item) in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DateBarCell", for: indexPath) as! DateBarCell
             
-            cell.updateUI(schedule: item, isSelected: indexPath == self.currentIndexPath)
+            cell.updateUI(schedule: item, isSelected: indexPath == self?.currentIndexPath)
             return cell
         })
     
     private lazy var scheduleCollectionViewDataSource = RxCollectionViewSectionedReloadDataSource
         <SectionModel<String, UiSchedule>>(
-        configureCell: { (dataSource, collectionView, indexPath, item) in
+        configureCell: { [weak self] (dataSource, collectionView, indexPath, item) in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ScheduleCollectionViewCell", for: indexPath) as! ScheduleCollectionViewCell
             
             cell.updateUI(schedule: item)
-            cell.tableViewSubject.onNext(self.viewModel.genTimeTableViewData(viewObject: item))
+            cell.tableViewSubject.onNext((self?.viewModel.genTimeTableViewData(viewObject: item))!)
             return cell
         })
 
@@ -163,9 +163,9 @@ class ScheduleVC: UIViewController {
             .map { indexPath in
                 return (indexPath, self.dateBarDataSource[indexPath])
             }
-            .subscribe(onNext: { (indexPath, schedule) in
-                self.currentIndexPath = indexPath
-                self.scrollToItemCenter()
+            .subscribe(onNext: { [weak self] (indexPath, schedule) in
+                self?.currentIndexPath = indexPath
+                self?.scrollToItemCenter()
             })
             .disposed(by: disposeBag)
         
@@ -173,18 +173,18 @@ class ScheduleVC: UIViewController {
             .map { indexPath in
                 return (indexPath, self.scheduleCollectionViewDataSource[indexPath])
             }
-            .subscribe(onNext: { (indexPath, schedule) in
-                self.currentIndexPath = indexPath
-                self.scrollToItemCenter()
+            .subscribe(onNext: { [weak self] (indexPath, schedule) in
+                self?.currentIndexPath = indexPath
+                self?.scrollToItemCenter()
             })
             .disposed(by: disposeBag)
         
-        previousBtn.rx.tap.subscribe(onNext: {
-            self.arrowBtnPressed(isNext: false)
+        previousBtn.rx.tap.subscribe(onNext: { [weak self] in
+            self?.arrowBtnPressed(isNext: false)
         }).disposed(by: disposeBag)
         
-        nextBtn.rx.tap.subscribe(onNext: {
-            self.arrowBtnPressed(isNext: true)
+        nextBtn.rx.tap.subscribe(onNext: { [weak self] in
+            self?.arrowBtnPressed(isNext: true)
         }).disposed(by: disposeBag)
         
         viewModel.timeZoneHintSubject
