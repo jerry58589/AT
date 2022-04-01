@@ -17,20 +17,6 @@ class ScheduleCollectionViewCell: UICollectionViewCell {
         tableView.separatorColor = UIColor.clear
         tableView.register(TimeTableViewCell.self, forCellReuseIdentifier: "TimeTableViewCell")
         
-        tableView.rx.itemSelected
-            .map { indexPath in
-                return (indexPath, self.tableViewDataSource[indexPath])
-            }
-            .subscribe(onNext: { (indexPath, uiCellTime) in
-                if uiCellTime.isAvailable {
-                    print("Pressed available time:", uiCellTime.time)
-                }
-                else {
-                    print("Pressed booked time:", uiCellTime.time)
-                }
-            })
-            .disposed(by: disposeBag)
-
         return tableView
     }()
     
@@ -53,7 +39,7 @@ class ScheduleCollectionViewCell: UICollectionViewCell {
         )
     
     private let disposeBag = DisposeBag()
-    let tableViewSubject = PublishSubject<[SectionModel<String, UiCellTime>]>()
+    private let tableViewSubject = PublishSubject<[SectionModel<String, UiCellTime>]>()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -83,9 +69,28 @@ class ScheduleCollectionViewCell: UICollectionViewCell {
         tableViewSubject
             .bind(to: tableView.rx.items(dataSource: tableViewDataSource))
             .disposed(by: disposeBag)
+        
+        tableView.rx.itemSelected
+            .map { indexPath in
+                return (indexPath, self.tableViewDataSource[indexPath])
+            }
+            .subscribe(onNext: { (indexPath, uiCellTime) in
+                if uiCellTime.isAvailable {
+                    print("Pressed available time:", uiCellTime.time)
+                }
+                else {
+                    print("Pressed booked time:", uiCellTime.time)
+                }
+            })
+            .disposed(by: disposeBag)
     }
     
     func updateUI(schedule: UiSchedule) {
         hintLabel.isHidden = schedule.cellTimeList.count != 0
+        tableViewSubject.onNext(genTimeTableViewData(viewObject: schedule))
+    }
+    
+    private func genTimeTableViewData(viewObject: UiSchedule) -> [SectionModel<String, UiCellTime>] {
+        return [viewObject].map({return SectionModel(model: "", items: $0.cellTimeList)})
     }
 }

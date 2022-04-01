@@ -133,10 +133,6 @@ class ScheduleVM {
     private func genDateBarData(viewObject: UiScheduleList) -> [SectionModel<String, UiSchedule>] {
         return [viewObject].map({return SectionModel(model: "", items: $0.scheduleList)})
     }
-    
-    func genTimeTableViewData(viewObject: UiSchedule) -> [SectionModel<String, UiCellTime>] {
-        return [viewObject].map({return SectionModel(model: "", items: $0.cellTimeList)})
-    }
 
 }
 

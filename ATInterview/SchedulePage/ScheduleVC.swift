@@ -87,7 +87,6 @@ class ScheduleVC: UIViewController {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ScheduleCollectionViewCell", for: indexPath) as! ScheduleCollectionViewCell
             
             cell.updateUI(schedule: item)
-            cell.tableViewSubject.onNext((self?.viewModel.genTimeTableViewData(viewObject: item))!)
             return cell
         })
 
