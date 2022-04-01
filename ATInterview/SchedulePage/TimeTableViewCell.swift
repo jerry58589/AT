@@ -44,7 +44,7 @@ class TimeTableViewCell: UITableViewCell {
         backView.snp.makeConstraints { (make) in
             make.top.bottom.equalToSuperview().inset(10)
             make.left.right.equalToSuperview().inset(30)
-            make.height.equalTo(60)
+            make.height.greaterThanOrEqualTo(60)
         }
         
         nameLabel.snp.makeConstraints { (make) in
