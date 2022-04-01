@@ -132,7 +132,7 @@ class ScheduleVC: UIViewController {
         getUiScheduleList()
     }
 
-    public init(viewModel: ScheduleVM = .init()) {
+    init(viewModel: ScheduleVM = .init()) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
