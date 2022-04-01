@@ -21,16 +21,6 @@ class ScheduleVC: UIViewController {
         let collectionView = UICollectionView(frame: CGRect.zero,collectionViewLayout: layout)
         collectionView.backgroundColor = UIColor.gray
         collectionView.register(DateBarCell.self, forCellWithReuseIdentifier: "DateBarCell")
-        
-        collectionView.rx.itemSelected
-            .map { indexPath in
-                return (indexPath, self.dateBarDataSource[indexPath])
-            }
-            .subscribe(onNext: { (indexPath, schedule) in
-                self.currentIndexPath = indexPath
-                self.scrollToItemCenter()
-            })
-            .disposed(by: disposeBag)
 
         return collectionView
     }()
@@ -46,16 +36,6 @@ class ScheduleVC: UIViewController {
         collectionView.register(ScheduleCollectionViewCell.self, forCellWithReuseIdentifier: "ScheduleCollectionViewCell")
         collectionView.delegate = self
 
-        collectionView.rx.itemSelected
-            .map { indexPath in
-                return (indexPath, self.scheduleCollectionViewDataSource[indexPath])
-            }
-            .subscribe(onNext: { (indexPath, schedule) in
-                self.currentIndexPath = indexPath
-                self.scrollToItemCenter()
-            })
-            .disposed(by: disposeBag)
-
         return collectionView
     }()
     
@@ -64,10 +44,6 @@ class ScheduleVC: UIViewController {
         
         button.setImage(UIImage(named: "previous_arrow"), for: .normal)
         button.isEnabled = false
-        
-        button.rx.tap.subscribe(onNext: {
-            self.arrowBtnPressed(isNext: false)
-        }).disposed(by: disposeBag)
 
         return button
     }()
@@ -76,10 +52,6 @@ class ScheduleVC: UIViewController {
         let button = UIButton(type: .custom)
         
         button.setImage(UIImage(named: "next_arrow"), for: .normal)
-
-        button.rx.tap.subscribe(onNext: {
-            self.arrowBtnPressed(isNext: true)
-        }).disposed(by: disposeBag)
 
         return button
     }()
@@ -187,6 +159,34 @@ class ScheduleVC: UIViewController {
     }
     
     private func dataBinding() {
+        dateBar.rx.itemSelected
+            .map { indexPath in
+                return (indexPath, self.dateBarDataSource[indexPath])
+            }
+            .subscribe(onNext: { (indexPath, schedule) in
+                self.currentIndexPath = indexPath
+                self.scrollToItemCenter()
+            })
+            .disposed(by: disposeBag)
+        
+        scheduleCollectionView.rx.itemSelected
+            .map { indexPath in
+                return (indexPath, self.scheduleCollectionViewDataSource[indexPath])
+            }
+            .subscribe(onNext: { (indexPath, schedule) in
+                self.currentIndexPath = indexPath
+                self.scrollToItemCenter()
+            })
+            .disposed(by: disposeBag)
+        
+        previousBtn.rx.tap.subscribe(onNext: {
+            self.arrowBtnPressed(isNext: false)
+        }).disposed(by: disposeBag)
+        
+        nextBtn.rx.tap.subscribe(onNext: {
+            self.arrowBtnPressed(isNext: true)
+        }).disposed(by: disposeBag)
+        
         viewModel.timeZoneHintSubject
             .bind(to: timezoneHintLabel.rx.text)
             .disposed(by: disposeBag)
