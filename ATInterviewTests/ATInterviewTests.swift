@@ -38,6 +38,8 @@ class ATInterviewTests: XCTestCase {
         var responseData: Data?
         var statusCode: Int?
 
+        let expectation = XCTestExpectation(description: "response")
+
         APIManager.shared.runCommand(apiType: .OPENAPI_GET_SCHEDULE, params: params, completion: { response in
             responseData = response.data
             responseError = response.error
@@ -46,7 +48,11 @@ class ATInterviewTests: XCTestCase {
             XCTAssertEqual(statusCode, 200)
             XCTAssertNotNil(responseData)
             XCTAssertNil(responseError)
+            
+            expectation.fulfill()
         })
+        
+        wait(for: [expectation], timeout: 2)
 
     }
 
